@@ -16,6 +16,8 @@ router.post('/createuser', [
   body('dob', 'Enter your dob'),
   body('birthtime', 'Enter your birth time'),
   body('birthplace', 'Enter your birth place'),
+  body('consonent', 'Enter your consonent'),
+  body('vowel', 'Enter your vowel'),
 ], async (req, res) => {
   let success = false;
   const errors = validationResult(req);
@@ -43,6 +45,8 @@ router.post('/createuser', [
       dob: req.body.dob,
       birthtime: req.body.birthtime,
       birthplace: req.body.birthplace,
+      consonent: req.body.consonent,
+      vowel: req.body.vowel,
     })
 
     const data = {
@@ -128,13 +132,15 @@ router.put('/edituser', fetchuser, [
   body('dob', 'Enter your dob').optional(),
   body('birthtime', 'Enter your birth time').optional(),
   body('birthplace', 'Enter your birth place').optional(),
+  body('consonent', 'Enter your consonent').optional(),
+  body('vowel', 'Enter your vowel').optional(),
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
-  const { name, email, password ,dob, birthtime, birthplace} = req.body;
+  const { name, email, password ,dob, birthtime, birthplace ,consonent, vowel} = req.body;
   const updatedFields = {};
   
   // Add fields to be updated if provided
@@ -143,6 +149,8 @@ router.put('/edituser', fetchuser, [
   if (dob) updatedFields.dob = dob;
   if (birthtime) updatedFields.birthtime = birthtime;
   if (birthplace) updatedFields.birthplace = birthplace;
+  if (consonent) updatedFields.consonent = consonent;
+  if (vowel) updatedFields.vowel = vowel;
 
   if (password) {
     const salt = await bcrypt.genSalt(10);
