@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
+  role: {
+    type: String,
+    enum: ["user"],
+    default: "user",
+  },
   name: {
     type: String,
     required: true,
