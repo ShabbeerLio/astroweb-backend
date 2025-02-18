@@ -17,7 +17,7 @@ const isAdmin = async (req, res, next) => {
   }
 };
 
-// Route to add a detail (Admin only)
+// Route to add a Gochar detail (Admin only) /api/admindetail/add
 router.post("/add", fetchUser, isAdmin, async (req, res) => {
   try {
     const { gochar } = req.body;
@@ -30,7 +30,7 @@ router.post("/add", fetchUser, isAdmin, async (req, res) => {
     if (!adminDetail) {
       adminDetail = new AdminDetail({ gochar });
     } else {
-      adminDetail.gochar.push(...gochar); 
+      adminDetail.gochar.push(...gochar);
     }
 
     await adminDetail.save();
@@ -40,11 +40,60 @@ router.post("/add", fetchUser, isAdmin, async (req, res) => {
   }
 });
 
-// Route to fetch all details (Accessible to all users)
+// Route to fetch all details (Accessible to all users) /api/admindetail/all
 router.get("/all", async (req, res) => {
   try {
     const details = await AdminDetail.find().sort({ date: -1 });
     res.status(200).json(details);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Route to edit a specific Gochar entry (Admin only) /api/admindetail/edit/:id
+router.put("/edit/:id", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedGochar = req.body;
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      return res.status(404).json({ message: "Admin details not found" });
+    }
+
+    const gocharIndex = adminDetail.gochar.findIndex(g => g._id.toString() === id);
+    if (gocharIndex === -1) {
+      return res.status(404).json({ message: "Gochar entry not found" });
+    }
+
+    adminDetail.gochar[gocharIndex] = { ...adminDetail.gochar[gocharIndex]._doc, ...updatedGochar };
+    await adminDetail.save();
+
+    res.status(200).json({ message: "Gochar updated successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Route to delete a specific Gochar entry (Admin only) /api/admindetail/delete/:id
+router.delete("/delete/:id", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      return res.status(404).json({ message: "Admin details not found" });
+    }
+
+    const initialLength = adminDetail.gochar.length;
+    adminDetail.gochar = adminDetail.gochar.filter(g => g._id.toString() !== id);
+
+    if (initialLength === adminDetail.gochar.length) {
+      return res.status(404).json({ message: "Gochar entry not found" });
+    }
+
+    await adminDetail.save();
+    res.status(200).json({ message: "Gochar deleted successfully", adminDetail });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

@@ -28,11 +28,11 @@ const GocharSchema = new mongoose.Schema({
     required: true,
   },
   date_of_entry: {
-    type: Date,
+    type: String,
     required: true,
   },
   date_of_exit: {
-    type: Date,
+    type: String,
     required: true,
   },
 });
