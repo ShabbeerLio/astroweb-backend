@@ -14,6 +14,7 @@ app.use(express.json());
 // Available routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/detail', require('./routes/detail'));
+app.use('/api/admindetail', require('./routes/adminDetail'));
 
 app.get('/', (req, res) => {
     res.json({ message: 'Hello MERN Stack!' });
