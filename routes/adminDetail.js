@@ -61,15 +61,22 @@ router.put("/edit/:id", fetchUser, isAdmin, async (req, res) => {
       return res.status(404).json({ message: "Admin details not found" });
     }
 
-    const gocharIndex = adminDetail.gochar.findIndex(g => g._id.toString() === id);
+    const gocharIndex = adminDetail.gochar.findIndex(
+      (g) => g._id.toString() === id
+    );
     if (gocharIndex === -1) {
       return res.status(404).json({ message: "Gochar entry not found" });
     }
 
-    adminDetail.gochar[gocharIndex] = { ...adminDetail.gochar[gocharIndex]._doc, ...updatedGochar };
+    adminDetail.gochar[gocharIndex] = {
+      ...adminDetail.gochar[gocharIndex]._doc,
+      ...updatedGochar,
+    };
     await adminDetail.save();
 
-    res.status(200).json({ message: "Gochar updated successfully", adminDetail });
+    res
+      .status(200)
+      .json({ message: "Gochar updated successfully", adminDetail });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
@@ -86,14 +93,101 @@ router.delete("/delete/:id", fetchUser, isAdmin, async (req, res) => {
     }
 
     const initialLength = adminDetail.gochar.length;
-    adminDetail.gochar = adminDetail.gochar.filter(g => g._id.toString() !== id);
+    adminDetail.gochar = adminDetail.gochar.filter(
+      (g) => g._id.toString() !== id
+    );
 
     if (initialLength === adminDetail.gochar.length) {
       return res.status(404).json({ message: "Gochar entry not found" });
     }
 
     await adminDetail.save();
-    res.status(200).json({ message: "Gochar deleted successfully", adminDetail });
+    res
+      .status(200)
+      .json({ message: "Gochar deleted successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+/* API Key Management */
+
+// Route to add an API Key (Admin only)
+router.post("/apikey/add", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    if (!apiKey) {
+      return res.status(400).json({ message: "API Key is required" });
+    }
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      adminDetail = new AdminDetail({ apiKey: [{ apiKey }] });
+    } else {
+      adminDetail.apiKey.push({ apiKey });
+    }
+
+    await adminDetail.save();
+    res
+      .status(201)
+      .json({ message: "API Key added successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Route to edit an API Key entry (Admin only)
+router.put("/apikey/edit/:id", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { apiKey } = req.body;
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      return res.status(404).json({ message: "Admin details not found" });
+    }
+
+    const apiKeyIndex = adminDetail.apiKey.findIndex(
+      (a) => a._id.toString() === id
+    );
+    if (apiKeyIndex === -1) {
+      return res.status(404).json({ message: "API Key entry not found" });
+    }
+
+    adminDetail.apiKey[apiKeyIndex].apiKey = apiKey;
+    await adminDetail.save();
+
+    res
+      .status(200)
+      .json({ message: "API Key updated successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Route to delete an API Key entry (Admin only)
+router.delete("/apikey/delete/:id", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      return res.status(404).json({ message: "Admin details not found" });
+    }
+
+    const initialLength = adminDetail.apiKey.length;
+    adminDetail.apiKey = adminDetail.apiKey.filter(
+      (a) => a._id.toString() !== id
+    );
+
+    if (initialLength === adminDetail.apiKey.length) {
+      return res.status(404).json({ message: "API Key entry not found" });
+    }
+
+    await adminDetail.save();
+    res
+      .status(200)
+      .json({ message: "API Key deleted successfully", adminDetail });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }

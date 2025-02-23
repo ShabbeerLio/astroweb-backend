@@ -10,7 +10,19 @@ const DetailSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  detail: {
+  horoscopeData: {
+    type: Object,
+  },
+  dashas: {
+    type: Object,
+  },
+  rashiData: {
+    type: Object,
+  },
+  chart1Url: {
+    type: String,
+  },
+  chart2Url: {
     type: String,
   },
 });

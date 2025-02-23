@@ -1,6 +1,12 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+const ApiSchema = new mongoose.Schema({
+  apiKey: {
+    type: String,
+    require: true,
+  },
+});
 const GocharSchema = new mongoose.Schema({
   planet_name: {
     type: String,
@@ -39,6 +45,7 @@ const GocharSchema = new mongoose.Schema({
 
 const AdminDetailSchema = new Schema({
   gochar: [GocharSchema],
+  apiKey: [ApiSchema],
   date: {
     type: Date,
     default: Date.now,
