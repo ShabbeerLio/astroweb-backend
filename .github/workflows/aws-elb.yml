@@ -16,9 +16,7 @@ jobs:
 
       # Step 2: Navigate to the subdirectory and generate deployment package
       - name: Generate deployment package
-        run: |
-          cd RoduSuperstar  # Replace with the actual name of your subdirectory
-          zip -r ../deploy.zip . -x '*.git*'
+        run: zip -r ../deploy.zip . -x '*.git*'
 
       # Step 3: Deploy to Elastic Beanstalk
       - name: Deploy to Elastic Beanstalk
