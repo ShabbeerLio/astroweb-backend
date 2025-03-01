@@ -1,0 +1,34 @@
+name: Deploy to Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - main  # Trigger deployment on pushes to the master branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout source code
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      # Step 2: Navigate to the subdirectory and generate deployment package
+      - name: Generate deployment package
+        run: |
+          cd RoduSuperstar  # Replace with the actual name of your subdirectory
+          zip -r ../deploy.zip . -x '*.git*'
+
+      # Step 3: Deploy to Elastic Beanstalk
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v22
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: test  # Replace with your Elastic Beanstalk application name
+          environment_name: Test-env  # Replace with your Elastic Beanstalk environment name
+          use_existing_version_if_available: true
+          version_label: v-${{ github.run_id }}  # Unique version label for each deployment
+          region: ap-south-1  # Replace with your AWS region
+          deployment_package: deploy.zip
