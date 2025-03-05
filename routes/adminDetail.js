@@ -110,6 +110,96 @@ router.delete("/delete/:id", fetchUser, isAdmin, async (req, res) => {
   }
 });
 
+// Life Aspect
+
+// Route to add a life_aspect detail (Admin only) /api/admindetail/lifeaspect/add
+router.post("/lifeaspect/add", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { life_aspect } = req.body;
+
+    if (!life_aspect) {
+      return res.status(400).json({ message: "life_aspect is required" });
+    }
+
+    let adminDetail = await AdminDetail.findOne();
+
+    if (!adminDetail) {
+      adminDetail = new AdminDetail({ life_aspect });
+    } else {
+      adminDetail.life_aspect.push(...life_aspect);
+    }
+
+    await adminDetail.save();
+    res
+      .status(201)
+      .json({ message: "life_aspect added successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Route to add a life_aspect detail (Admin only) /api/admindetail/lifeaspect/edit/:id
+router.put("/lifeaspect/edit/:id", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id,"id")
+    const updatedLifeAspect = req.body;
+    console.log(updatedLifeAspect,"updatedLifeAspect")
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      return res.status(404).json({ message: "Admin details not found" });
+    }
+
+    const LifeAspectIndex = adminDetail.life_aspect.findIndex(
+      (g) => g._id.toString() === id
+    );
+    if (LifeAspectIndex === -1) {
+      return res.status(404).json({ message: "life_aspect entry not found" });
+    }
+
+    adminDetail.life_aspect[LifeAspectIndex] = {
+      ...adminDetail.life_aspect[LifeAspectIndex]._doc,
+      ...updatedLifeAspect,
+    };
+    await adminDetail.save();
+
+    res
+      .status(200)
+      .json({ message: "life_aspect updated successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
+// Route to add a life_aspect detail (Admin only) /api/admindetail/lifeaspect/delete/:id
+router.delete("/lifeaspect/delete/:id", fetchUser, isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    let adminDetail = await AdminDetail.findOne();
+    if (!adminDetail) {
+      return res.status(404).json({ message: "Admin details not found" });
+    }
+
+    const initialLength = adminDetail.life_aspect.length;
+    adminDetail.life_aspect = adminDetail.life_aspect.filter(
+      (g) => g._id.toString() !== id
+    );
+
+    if (initialLength === adminDetail.life_aspect.length) {
+      return res.status(404).json({ message: "life_aspect entry not found" });
+    }
+
+    await adminDetail.save();
+    res
+      .status(200)
+      .json({ message: "life_aspect deleted successfully", adminDetail });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+});
+
 /* API Key Management */
 
 // Route to add an API Key (Admin only)

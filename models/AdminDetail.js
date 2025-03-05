@@ -1,12 +1,37 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+const LifeAspectSchema = new mongoose.Schema({
+  planet_name: {
+    type: String,
+    required: true,
+  },
+  nakshatra: {
+    type: String,
+    required: true,
+  },
+  pada: {
+    type: Number,
+    required: true,
+  },
+  combust: {
+    type: Boolean,
+    required: true,
+  },
+  motion: {
+    type: String,
+    enum: ["direct", "retrograde"],
+    required: true,
+  },
+});
 const ApiSchema = new mongoose.Schema({
   apiKey: {
     type: String,
     require: true,
   },
 });
+
+
 const GocharSchema = new mongoose.Schema({
   planet_name: {
     type: String,
@@ -45,6 +70,7 @@ const GocharSchema = new mongoose.Schema({
 
 const AdminDetailSchema = new Schema({
   gochar: [GocharSchema],
+  life_aspect: [LifeAspectSchema],
   apiKey: [ApiSchema],
   date: {
     type: Date,
