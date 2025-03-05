@@ -19,7 +19,7 @@ app.use('/api/detail', require('./routes/detail'));
 app.use('/api/admindetail', require('./routes/adminDetail'));
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Hello MERN Stack!' });
+    res.json({ message: 'Hello MERN Stack! - edited by ****' });
 });
 
 // Start server
