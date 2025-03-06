@@ -23,14 +23,18 @@ const LifeAspectSchema = new mongoose.Schema({
     enum: ["direct", "retrograde"],
     required: true,
   },
+  results: {
+    type: String,
+    required: true,
+  },
 });
+
 const ApiSchema = new mongoose.Schema({
   apiKey: {
     type: String,
     require: true,
   },
 });
-
 
 const GocharSchema = new mongoose.Schema({
   planet_name: {
@@ -71,6 +75,9 @@ const GocharSchema = new mongoose.Schema({
 const AdminDetailSchema = new Schema({
   gochar: [GocharSchema],
   life_aspect: [LifeAspectSchema],
+  monthlyPanchang: {
+    type: Object,
+  },
   apiKey: [ApiSchema],
   date: {
     type: Date,

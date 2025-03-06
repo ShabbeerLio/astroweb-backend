@@ -142,9 +142,9 @@ router.post("/lifeaspect/add", fetchUser, isAdmin, async (req, res) => {
 router.put("/lifeaspect/edit/:id", fetchUser, isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id,"id")
+    console.log(id, "id");
     const updatedLifeAspect = req.body;
-    console.log(updatedLifeAspect,"updatedLifeAspect")
+    console.log(updatedLifeAspect, "updatedLifeAspect");
 
     let adminDetail = await AdminDetail.findOne();
     if (!adminDetail) {
@@ -173,32 +173,37 @@ router.put("/lifeaspect/edit/:id", fetchUser, isAdmin, async (req, res) => {
 });
 
 // Route to add a life_aspect detail (Admin only) /api/admindetail/lifeaspect/delete/:id
-router.delete("/lifeaspect/delete/:id", fetchUser, isAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
+router.delete(
+  "/lifeaspect/delete/:id",
+  fetchUser,
+  isAdmin,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
 
-    let adminDetail = await AdminDetail.findOne();
-    if (!adminDetail) {
-      return res.status(404).json({ message: "Admin details not found" });
+      let adminDetail = await AdminDetail.findOne();
+      if (!adminDetail) {
+        return res.status(404).json({ message: "Admin details not found" });
+      }
+
+      const initialLength = adminDetail.life_aspect.length;
+      adminDetail.life_aspect = adminDetail.life_aspect.filter(
+        (g) => g._id.toString() !== id
+      );
+
+      if (initialLength === adminDetail.life_aspect.length) {
+        return res.status(404).json({ message: "life_aspect entry not found" });
+      }
+
+      await adminDetail.save();
+      res
+        .status(200)
+        .json({ message: "life_aspect deleted successfully", adminDetail });
+    } catch (error) {
+      res.status(500).json({ message: "Server error", error });
     }
-
-    const initialLength = adminDetail.life_aspect.length;
-    adminDetail.life_aspect = adminDetail.life_aspect.filter(
-      (g) => g._id.toString() !== id
-    );
-
-    if (initialLength === adminDetail.life_aspect.length) {
-      return res.status(404).json({ message: "life_aspect entry not found" });
-    }
-
-    await adminDetail.save();
-    res
-      .status(200)
-      .json({ message: "life_aspect deleted successfully", adminDetail });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
   }
-});
+);
 
 /* API Key Management */
 
@@ -281,6 +286,57 @@ router.delete("/apikey/delete/:id", fetchUser, isAdmin, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
+});
+
+// monthly panchaang
+
+async function fetchMonthlyPanchang() {
+  const currentDate = new Date();
+  const day = String(currentDate.getDate()).padStart(2, "0");
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+  const year = currentDate.getFullYear();
+  const formattedDate = `${day}/${month}/${year}`;
+  // Fetch API Key from Database
+  let adminDetail = await AdminDetail.findOne();
+  if (!adminDetail || !adminDetail.apiKey.length) {
+    return res.status(400).json({ message: "API Key not found" });
+  }
+
+  const apiKey = adminDetail.apiKey[0].apiKey;
+  try {
+    const users = await User.find();
+    const adminUser = users.find((user) => user.role === "admin");
+    if (!adminUser) {
+      console.log("No admin user found.");
+      return;
+    }
+    const apiUrl = `https://api.vedicastroapi.com/v3-json/panchang/monthly-panchang?api_key=${apiKey}&date=${formattedDate}&lat=28.7041&lon=77.1025&tz=5.5&lang=en`;
+    const response = await fetch(apiUrl);
+    const panchangData = await response.json();
+
+    if (!panchangData || Object.keys(panchangData).length === 0) {
+      console.log("No Panchang data received.");
+      return;
+    }
+    adminDetail.monthlyPanchang = panchangData;
+    await adminDetail.save();
+    console.log(`Panchang data updated successfully at ${formattedDate}`);
+  } catch (error) {
+    console.error("Error fetching or saving Panchang data:", error);
+  }
+}
+
+// ⏰ Schedule task to run at **12:00 AM (midnight) every day**
+cron.schedule("0 0 * * *", () => {
+  console.log("Running fetchMonthlyPanchang at midnight...");
+  fetchMonthlyPanchang();
+});
+
+fetchMonthlyPanchang();
+
+router.get("/fetch-panchang", async (req, res) => {
+  await fetchMonthlyPanchang();
+  res.json({ message: "Panchang data fetched successfully" });
 });
 
 module.exports = router;
