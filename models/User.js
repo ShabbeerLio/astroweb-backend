@@ -34,11 +34,9 @@ const UserSchema = new Schema({
   },
   consonent: {
     type: String,
-    required: true,
   },
   vowel: {
     type: String,
-    required: true,
   },
   date: {
     type: Date,
