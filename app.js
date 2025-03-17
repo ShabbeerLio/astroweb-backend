@@ -21,7 +21,7 @@ app.use('/api/subscription', require('./routes/subscription'));
 app.use('/api/checksubscription', require('./routes/subscriptionAlert'));
 
 app.get('/', (req, res) => {
-    res.json({ message: 'Hello MERN Stack! - edited by ****' });
+    res.json({ message: 'Hello MERN Stack! - edited on 17th' });
 });
 
 // Start server
