@@ -1,6 +1,67 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
+const CouponSchema = new Schema({
+  code: {
+    type: String,
+    required: true,
+    enum: ["NIVESH15", "NIVESH20", "NIVESH50"],
+  },
+  discount: {
+    type: Number,
+    required: true,
+  },
+  used: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const SubscriptionSchema = new Schema({
+  plan: {
+    type: String,
+    enum: ["Free", "Basic", "Premium", "Enterprise"],
+    default: "Free",
+  },
+  startDate: {
+    type: Date,
+    default: Date.now,
+  },
+  endDate: {
+    type: Date,
+  },
+  status: {
+    type: String,
+    enum: ["Active", "Expired", "Cancelled"],
+    default: "Active",
+  },
+  paymentMethod: {
+    type: String,
+  },
+  transactionId: {
+    type: String,
+  },
+  appliedCoupon: CouponSchema,
+});
+
+const SubscriptionHistorySchema = new Schema({
+  plan: String,
+  startDate: Date,
+  endDate: Date,
+  paymentMethod: String,
+  transactionId: String,
+  appliedCoupon: {
+    code: String,
+    discount: Number,
+  },
+  status: String,
+  date: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+
 const UserSchema = new Schema({
   role: {
     type: String,
@@ -38,6 +99,8 @@ const UserSchema = new Schema({
   vowel: {
     type: String,
   },
+  subscription: { type: SubscriptionSchema, default: {} },
+  subscriptionHistory: [SubscriptionHistorySchema],
   date: {
     type: Date,
     default: Date.now,
