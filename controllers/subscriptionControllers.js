@@ -2,61 +2,87 @@ const User = require("../models/User");
 
 // Assign Subscription with Optional Coupon
 exports.assignSubscription = async (req, res) => {
-  try {
-    const { plan, endDate, paymentMethod, transactionId, couponCode } =
-      req.body;
-    const user = await User.findById(req.user.id);
-
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    let coupon = null;
-
-    // Apply coupon if provided
-    if (couponCode) {
-      const validCoupons = {
-        NIVESH15: 15,
-        NIVESH20: 20,
-        NIVESH50: 50,
-      };
-
-      if (!validCoupons[couponCode]) {
-        return res.status(400).json({ error: "Invalid coupon code" });
+    try {
+      const { plan, paymentMethod, transactionId, couponCode } = req.body;
+      const user = await User.findById(req.user.id);
+  
+      if (!user) return res.status(404).json({ error: "User not found" });
+  
+      let coupon = null;
+  
+      // Apply coupon if provided
+      if (couponCode) {
+        const validCoupons = {
+          NIVESH15: 15,
+          NIVESH20: 20,
+          NIVESH50: 50,
+        };
+  
+        if (!validCoupons[couponCode]) {
+          return res.status(400).json({ error: "Invalid coupon code" });
+        }
+  
+        coupon = {
+          code: couponCode,
+          discount: validCoupons[couponCode],
+          used: true,
+        };
       }
-
-      coupon = {
-        code: couponCode,
-        discount: validCoupons[couponCode],
-        used: true,
+  
+      const today = new Date();
+      let startDate = new Date(today); // default to today
+  
+      if (user.subscriptionHistory.length > 0) {
+        const lastHistory = user.subscriptionHistory[user.subscriptionHistory.length - 1];
+  
+        if (lastHistory.endDate) {
+          const lastEndDate = new Date(lastHistory.endDate);
+          if (today <= lastEndDate) {
+            // If last endDate >= today, start next day
+            lastEndDate.setDate(lastEndDate.getDate() + 1);
+            startDate = lastEndDate;
+          } 
+          // Else, startDate remains today (gap period handled automatically)
+        }
+      }
+  
+      // Determine endDate
+      let endDate = new Date(startDate);
+      if (plan === "Free") {
+        endDate.setDate(startDate.getDate() + 1);
+      } else {
+        endDate.setDate(startDate.getDate() + 30);
+      }
+  
+      // Assign subscription
+      user.subscription = {
+        plan,
+        startDate,
+        endDate,
+        status: "Active",
+        paymentMethod,
+        transactionId,
+        appliedCoupon: coupon,
       };
+  
+      // Add to history
+      user.subscriptionHistory.push({
+        plan,
+        startDate,
+        endDate,
+        paymentMethod,
+        transactionId,
+        appliedCoupon: coupon,
+        status: "Active",
+      });
+  
+      await user.save();
+      res.json({ success: true, subscription: user.subscription });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Server Error" });
     }
-
-    user.subscription = {
-      plan,
-      startDate: new Date(),
-      endDate,
-      status: "Active",
-      paymentMethod,
-      transactionId,
-      appliedCoupon: coupon,
-    };
-
-    // Add to history
-    user.subscriptionHistory.push({
-      plan,
-      startDate: new Date(),
-      endDate,
-      paymentMethod,
-      transactionId,
-      appliedCoupon: coupon,
-      status: "Active",
-    });
-
-    await user.save();
-    res.json({ success: true, subscription: user.subscription });
-  } catch (err) {
-    res.status(500).json({ error: "Server Error" });
-  }
-};
+  };
 
 // Check Subscription Status
 exports.checkSubscription = async (req, res) => {

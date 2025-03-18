@@ -61,7 +61,6 @@ const SubscriptionHistorySchema = new Schema({
   },
 });
 
-
 const UserSchema = new Schema({
   role: {
     type: String,
@@ -106,5 +105,22 @@ const UserSchema = new Schema({
     default: Date.now,
   },
 });
+
+UserSchema.pre("save", function (next) {
+  if (!this.subscription || !this.subscription.startDate) {
+    const createdDate = this.date || new Date();
+    const endDate = new Date(createdDate);
+    endDate.setDate(endDate.getDate() + 1);
+
+    this.subscription = {
+      plan: "Free",
+      startDate: createdDate,
+      endDate: endDate,
+      status: "Active",
+    };
+  }
+  next();
+});
+
 const User = mongoose.model("user", UserSchema);
 module.exports = User;
